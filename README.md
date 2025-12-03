@@ -12,7 +12,7 @@ A simple HR management system built with Node/Express, MongoDB, and React, using
 
 Environment variables in `backend/.env`:
 
-- `MONGO_URI` – e.g. `mongodb://localhost:27017/hrms`
+- `MONGO_URI` – e.g. `mongodb+srv://joshua:joshua2306@living-hope-trust.7wpgjap.mongodb.net/Colokin?retryWrites=true&w=majority`
 - `PORT` – e.g. `5000`
 
 Key endpoints:

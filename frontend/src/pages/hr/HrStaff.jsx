@@ -16,6 +16,7 @@ const HrStaff = () => {
   const [allTls, setAllTls] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({ managerId: '', tlId: '' });
+  const [searchTerm, setSearchTerm] = useState(''); // State for search query
 
   useEffect(() => {
     const load = async () => {
@@ -27,12 +28,12 @@ const HrStaff = () => {
         const all = employeesRes.data;
         const users = usersRes.data;
         
-        // Separate by role
+        // Separate by role (Checking userId.role because that's where the role lives)
         setManagersList(all.filter((e) => e.userId?.role === 'Manager'));
         setTlsList(all.filter((e) => e.userId?.role === 'TL'));
         setEmployeesList(all.filter((e) => e.userId?.role === 'Employee'));
         
-        // For dropdowns
+        // For dropdowns (Checking User collection role)
         setAllManagers(users.filter((u) => u.role === 'Manager'));
         setAllTls(users.filter((u) => u.role === 'TL'));
       } catch (e) {
@@ -66,7 +67,26 @@ const HrStaff = () => {
     }
   };
 
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditData({ managerId: '', tlId: '' });
+  };
+
+  // Helper to filter data based on search term
+  const getFilteredData = (data) => {
+    if (!searchTerm) return data;
+    const term = searchTerm.toLowerCase();
+    return data.filter((e) => 
+      e.firstName?.toLowerCase().includes(term) ||
+      e.lastName?.toLowerCase().includes(term) ||
+      e.jobTitle?.toLowerCase().includes(term) ||
+      e.department?.toLowerCase().includes(term)
+    );
+  };
+
   const renderTable = (data, role) => {
+    const filteredData = getFilteredData(data);
+
     return (
       <div className="bg-white rounded-lg shadow-sm overflow-hidden">
         <table className="min-w-full text-sm">
@@ -75,7 +95,7 @@ const HrStaff = () => {
               <th className="px-3 py-2 text-left">Name</th>
               <th className="px-3 py-2 text-left">Job Title</th>
               <th className="px-3 py-2 text-left">Department</th>
-             
+              
               {role === 'TL' && (
                 <th className="px-3 py-2 text-left">Manager</th>
               )}
@@ -89,7 +109,7 @@ const HrStaff = () => {
             </tr>
           </thead>
           <tbody>
-            {data.map((e) => (
+            {filteredData.map((e) => (
               <tr key={e._id} className="border-t border-slate-100">
                 <td className="px-3 py-2">
                   {e.firstName} {e.lastName}
@@ -191,7 +211,7 @@ const HrStaff = () => {
                         onClick={() => navigate(`/hr/employee/${e._id}`)}
                         className="text-xs bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700"
                       >
-                        View Profile
+                        Profile
                       </button>
                       <button
                         onClick={() => handleEdit(e)}
@@ -204,13 +224,15 @@ const HrStaff = () => {
                 </td>
               </tr>
             ))}
-            {data.length === 0 && (
+            {filteredData.length === 0 && (
               <tr>
                 <td
                   className="px-3 py-4 text-center text-slate-500"
-                  colSpan={role === 'Manager' ? 5 : role === 'TL' ? 5 : 6}
+                  colSpan={role === 'Manager' ? 4 : role === 'TL' ? 5 : 6}
                 >
-                  No {role.toLowerCase()}s found.
+                   {searchTerm 
+                     ? `No matches found for "${searchTerm}" in ${role}s.` 
+                     : `No ${role.toLowerCase()}s found.`}
                 </td>
               </tr>
             )}
@@ -220,14 +242,19 @@ const HrStaff = () => {
     );
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setEditData({ managerId: '', tlId: '' });
-  };
-
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-lg font-semibold text-slate-800">Staff</h2>
+      {/* Header & Search */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h2 className="text-lg font-semibold text-slate-800">Staff Management</h2>
+        <input 
+            type="text" 
+            placeholder="Search by name, title, or department..." 
+            className="w-full sm:w-64 border border-slate-300 rounded-md px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
       {/* Tabs */}
       <div className="border-b border-slate-200">
@@ -285,5 +312,3 @@ const HrStaff = () => {
 };
 
 export default HrStaff;
-
-
